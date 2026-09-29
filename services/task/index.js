@@ -21,8 +21,23 @@ const addTask = async (userObj, res) => {
 
         return res.status(201).send({ success: true, message: 'Task added successfully', task: newTask });
     } catch (error) {
-        console.error('Error adding designer:', error);
-        return res.status(500).send({ success: false, message: 'Internal Server Error' });
+        console.error('Error adding task:', error);
+
+        // MongoDB duplicate key error
+        if (error.code === 11000) {
+            const duplicateField = Object.keys(error.keyValue)[0];
+            const duplicateValue = error.keyValue[duplicateField];
+
+            return res.status(409).send({
+                success: false,
+                message: `${duplicateField} "${duplicateValue}" already exists. Please use a different value.`
+            });
+        }
+
+        return res.status(500).send({
+            success: false,
+            message: 'Internal Server Error'
+        });
     }
 };
 
@@ -206,18 +221,17 @@ const uploadTaskImage = async (
 
         if (type === 'reference') {
             const result = await new Promise((resolve, reject) => {
-                const uploadStream =
-                    cloudinary.uploader.upload_stream(
-                        {
-                            folder: 'task-management/reference-images',
-                            resource_type: 'auto',
-                            public_id: `character-${taskId}-${characterIndex}-${imageIndex}-${Date.now()}`
-                        },
-                        (error, result) => {
-                            if (error) reject(error);
-                            else resolve(result);
-                        }
-                    );
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'task-management/reference-images',
+                        resource_type: 'auto',
+                        public_id: `character-${taskId}-${characterIndex}-${imageIndex}-${Date.now()}`
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
 
                 uploadStream.end(fileBuffer);
             });

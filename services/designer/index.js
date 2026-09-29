@@ -28,12 +28,10 @@ const addDesigner = async (userObj, res) => {
     }
 }
 
-const getAllDesigners = async (team, res) => {
+const getAllDesigners = async (res) => {
     try {
         const designers =
-            team === 'all' ?
-                await Designer.find({}).sort({ team: 1, name: 1 }) :
-                await Designer.find({ team }).sort({ team: 1, name: 1 });
+            await Designer.find({}).sort({ name: 1 });
 
         return res.status(200).send({ success: true, designers });
     } catch (error) {
@@ -49,7 +47,7 @@ const updateSpecificDesigner = async (updatedData, id, res) => {
     }
 
     try {
-        const { name, team, joiningDate, password } = updatedData;
+        const { name, joiningDate, password } = updatedData;
 
         const designerExist = await Designer.findById(id);
 
@@ -59,7 +57,7 @@ const updateSpecificDesigner = async (updatedData, id, res) => {
 
         const updatedDesigner = await Designer.findByIdAndUpdate(
             id,
-            { name, joiningDate, password, team },
+            { name, joiningDate, password },
             { new: true, runValidators: true }
         );
 

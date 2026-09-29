@@ -8,7 +8,7 @@ import {
 
 const Route = express.Router();
 
-Route.get('/get/:teamLeader', getDesigners);
+Route.get('/get/', getDesigners);
 Route.post('/add', addNewDesigner);
 Route.put('/update/:id', updateDesigner);
 Route.delete('/delete/:id', deleteDesigner);

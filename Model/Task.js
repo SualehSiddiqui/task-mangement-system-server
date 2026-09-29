@@ -28,7 +28,8 @@ const TaskSchema = new Schema({
 
     saleCode: {
         type: String,
-        required: false,
+        required: true,
+        unique: true,
         trim: true
     },
 
@@ -140,7 +141,6 @@ const TaskSchema = new Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true,
     },
 
 }, { timestamps: true });

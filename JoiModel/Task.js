@@ -31,7 +31,7 @@ const TaskSchema = Joi.object({
 
   saleCode: Joi.string()
     .trim()
-    .allow("", null),
+    .allow("").required(),
 
   assignedTo: Joi.string()
     .required(),

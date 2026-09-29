@@ -7,10 +7,6 @@ const DesignerSchema = new Schema({
         type: String,
         required: true
     },
-    team: {
-        type: String,
-        required: true
-    },
     joiningDate: {
         type: Date,
         required: true

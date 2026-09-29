@@ -5,13 +5,6 @@ import {
 } from "./auth/index.js";
 
 import {
-    getAllTeams,
-    addTeam,
-    updateSpecificTeam,
-    deleteSpecificTeam,
-} from "./team/index.js";
-
-import {
     getAllDesigners,
     addDesigner,
     updateSpecificDesigner,
@@ -35,11 +28,6 @@ export {
     createUser,
     authenticateExistingUser,
     changeUserPassword,
-    //Team Leader
-    addTeam,
-    getAllTeams,
-    updateSpecificTeam,
-    deleteSpecificTeam,
     //Designer
     getAllDesigners,
     addDesigner,

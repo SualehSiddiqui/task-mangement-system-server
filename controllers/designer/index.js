@@ -11,8 +11,7 @@ const addNewDesigner = (req, res) => {
 }
 
 const getDesigners = (req, res) => {
-    const { teamLeader } = req.params
-    return getAllDesigners(teamLeader, res);
+    return getAllDesigners(res);
 }
 
 const updateDesigner = (req, res) => {
