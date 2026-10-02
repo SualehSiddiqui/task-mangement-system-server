@@ -1,6 +1,7 @@
 import {
     getAllTasks,
     addTask,
+    getCode,
     updateSpecificTask,
     deleteSpecificTask,
     searchAllTasks,
@@ -13,6 +14,10 @@ import {
 const addNewTask = (req, res) => {
     const userObj = req.body;
     return addTask(userObj, res);
+}
+
+const getCodeNumber = (req, res) => {
+    return getCode(res);
 }
 
 const getTasks = async (req, res) => {
@@ -126,6 +131,7 @@ const deleteApprovalImage = (req, res) => {
 export {
     getTasks,
     addNewTask,
+    getCodeNumber,
     updateTask,
     deleteTask,
     searchTasks,

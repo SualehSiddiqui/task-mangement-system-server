@@ -13,7 +13,7 @@ const DescriptionSchema = Joi.object({
     publicId: Joi.string().allow("", null),
   })
     .optional()
-    .allow(null),
+    .allow("", null),
 });
 
 const CharacterSchema = Joi.array()
@@ -31,17 +31,24 @@ const TaskSchema = Joi.object({
 
   saleCode: Joi.string()
     .trim()
-    .allow("").required(),
+    .required()
+    .messages({
+      "string.empty": "Sale code is required"
+    }),
 
-  assignedTo: Joi.string()
-    .required(),
+  designer: Joi.object({
+    _id: Joi.string().allow("", null),
+
+    name: Joi.string()
+      .trim().allow("", null),
+
+  }).allow({}, null),
 
   numberOfCharacters: Joi.number()
     .integer()
     .min(1)
     .required(),
 
-  // Array of Characters
   characters: Joi.array()
     .items(CharacterSchema)
     .min(1)
@@ -50,12 +57,10 @@ const TaskSchema = Joi.object({
       "array.min": "At least one character is required",
     }),
 
-  // Array of Revision Requests (same structure)
   revisionRequests: Joi.array()
     .items(CharacterSchema)
-    .messages({
-      "array.min": "At least one character is required",
-    }).allow(null),
+    .allow("", null)
+    .default([]),
 
   urgent: Joi.boolean()
     .default(false),
@@ -77,11 +82,11 @@ const TaskSchema = Joi.object({
   submissionUrl: Joi.string()
     .allow("", null),
 
-  dueDate: Joi.date(),
+  dueDate: Joi.date()
+    .allow("", null),
 
   username: Joi.string()
-    .trim()
-    .required(),
+    .trim().allow("", null)
 });
 
 export default TaskSchema;

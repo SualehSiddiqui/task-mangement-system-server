@@ -15,6 +15,7 @@ app.use(express.json());
 const allowedOrigins = [
     'http://localhost:5173',
     'https://avatarpick.com',
+    // 'http://innovativehive-production.vercel.app',
 ];
 
 const corsOptions = {

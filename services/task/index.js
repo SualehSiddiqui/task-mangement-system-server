@@ -1,21 +1,30 @@
 import Task from "../../Model/Task.js";
 import TaskSchema from "../../JoiModel/Task.js";
+import Code from "../../Model/Code.js";
 import cloudinary from "../../config/cloudinary.js";
+import mongoose from "mongoose";
 
 const addTask = async (userObj, res) => {
     const lastTask = await Task.findOne().sort({ fifoOrder: -1 });
     userObj.fifoOrder = lastTask ? lastTask.fifoOrder + 1 : 1;
 
+    if (userObj?.designer?._id == "")
+        delete userObj?.designer;
+
     const { error } = TaskSchema.validate(userObj);
     if (error) {
+        console.log("asdsad")
         console.log('Validation error:', error.details[0].message);
         return res.status(400).send({ success: false, message: error.details[0].message });
     };
 
     try {
+        const code = await getCodeToUpdate('code');
+
         // Create a new task
         const newTask = new Task({
             ...userObj,
+            saleCode: `PU-${String(code).padStart(4, '0')}`,
         });
         await newTask.save();
 
@@ -41,43 +50,167 @@ const addTask = async (userObj, res) => {
     }
 };
 
+const getCodeToUpdate = async () => {
+    try {
+        const sequenceDocExist = await Code.findOne({ _id: "code" });
+        let sequenceDoc;
+        if (sequenceDocExist) {
+            sequenceDoc = await Code.findOneAndUpdate(
+                { _id: "code" },
+                { $inc: { sequence_value: 1 } },
+                { returnDocument: 'after', upsert: true }
+            );
+        } else {
+            sequenceDoc = await Code({ _id: 'code', sequence_value: 1 });
+            sequenceDoc.save();
+        }
+        return sequenceDoc.sequence_value;
+    }
+    catch (error) {
+        console.log(error)
+    }
+};
+
+const getCode = async (res) => {
+    try {
+        const sequenceDocExist = await Code.findOne({ _id: 'code' });
+        let sequenceDoc;
+        if (!sequenceDocExist) {
+            sequenceDoc = await Code({ _id: 'code', sequence_value: 0 });
+            sequenceDoc.save();
+        } else {
+            sequenceDoc = sequenceDocExist;
+        }
+        return res.status(200).send({ success: true, number: sequenceDoc.sequence_value });
+    } catch (error) {
+        console.log('error--->', error)
+        res.status(500).send({ success: false, error, message: error.message })
+    }
+};
+
 const getAllTasks = async (page, size, status, designer, res) => {
     try {
-        let tasks;
+        // ==========================================
+        // BASE FILTER
+        // ==========================================
 
-        // Build base filter
         const baseFilter = {};
+
+        // Designer is now stored as:
+        // designer: {
+        //     _id: String,
+        //     name: String
+        // }
+
         if (designer) {
-            baseFilter.assignedTo = designer;
+            baseFilter['designer._id'] = designer;
         }
 
-        const totalTask = await Task.countDocuments(baseFilter);
 
-        if (page !== 'undefined' && size !== 'undefined') {
-            const skip = (Number(page) - 1) * Number(size);
+        // ==========================================
+        // STATUS FILTER
+        // ==========================================
 
-            const query = { ...baseFilter };
+        const query = { ...baseFilter };
 
-            if (status !== 'all') {
-                query.status = status;
-            }
+        if (status && status !== 'all') {
+            query.status = status;
+        }
+
+
+        // ==========================================
+        // TOTAL TASKS
+        // ==========================================
+
+        const totalTask = await Task.countDocuments(query);
+
+
+        // ==========================================
+        // GET TASKS
+        // ==========================================
+
+        let tasks;
+
+        const hasPagination =
+            page !== undefined &&
+            page !== null &&
+            page !== 'undefined' &&
+            size !== undefined &&
+            size !== null &&
+            size !== 'undefined';
+
+        if (hasPagination) {
+            const pageNumber = Number(page);
+            const pageSize = Number(size);
+
+            const skip = (pageNumber - 1) * pageSize;
 
             tasks = await Task.find(query)
                 .sort({ createdAt: 1 })
                 .skip(skip)
-                .limit(Number(size));
+                .limit(pageSize);
         } else {
-            tasks = await Task.find(baseFilter).sort({ createdAt: 1 });
+            tasks = await Task.find(query)
+                .sort({ createdAt: 1 });
         }
 
+
+        // ==========================================
+        // STATUS COUNTS
+        // ==========================================
+
+        const [
+            created,
+            assigned,
+            inProgress,
+            pendingApproval,
+            rejected,
+            completed
+        ] = await Promise.all([
+            Task.countDocuments({
+                ...baseFilter,
+                status: 'created'
+            }),
+
+            Task.countDocuments({
+                ...baseFilter,
+                status: 'assigned'
+            }),
+
+            Task.countDocuments({
+                ...baseFilter,
+                status: 'inProgress'
+            }),
+
+            Task.countDocuments({
+                ...baseFilter,
+                status: 'pendingApproval'
+            }),
+
+            Task.countDocuments({
+                ...baseFilter,
+                status: 'rejected'
+            }),
+
+            Task.countDocuments({
+                ...baseFilter,
+                status: 'completed'
+            })
+        ]);
+
+
+        // ==========================================
+        // RESPONSE
+        // ==========================================
+
         const miscellaneous = {
-            totalTasks: totalTask,
-            created: await Task.countDocuments({ ...baseFilter, status: 'created' }),
-            assigned: await Task.countDocuments({ ...baseFilter, status: 'assigned' }),
-            inProgress: await Task.countDocuments({ ...baseFilter, status: 'inProgress' }),
-            pendingApproval: await Task.countDocuments({ ...baseFilter, status: 'pendingApproval' }),
-            rejected: await Task.countDocuments({ ...baseFilter, status: 'rejected' }),
-            completed: await Task.countDocuments({ ...baseFilter, status: 'completed' })
+            totalTasks: await Task.countDocuments(baseFilter),
+            created,
+            assigned,
+            inProgress,
+            pendingApproval,
+            rejected,
+            completed
         };
 
         return res.status(200).send({
@@ -87,10 +220,10 @@ const getAllTasks = async (page, size, status, designer, res) => {
         });
 
     } catch (error) {
-        console.log('error--->', error);
-        res.status(500).send({
+        console.error('Error getting tasks:', error);
+
+        return res.status(500).send({
             success: false,
-            error,
             message: error.message
         });
     }
@@ -244,7 +377,7 @@ const uploadTaskImage = async (
                             [`characters.${characterIndex}.${imageIndex}.image.url`]:
                                 result.secure_url,
                             [`characters.${characterIndex}.${imageIndex}.image.publicId`]:
-                                result.public_id
+                                result.public_id,
                         }
                     },
                     { new: true }
@@ -518,4 +651,5 @@ export {
     deleteFromCloudinary,
     uploadTaskApprovalImage,
     deleteApprovalFromCloudinary,
+    getCode,
 }

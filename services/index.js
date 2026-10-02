@@ -14,6 +14,7 @@ import {
 import {
     getAllTasks,
     addTask,
+    getCode,
     updateSpecificTask,
     deleteSpecificTask,
     searchAllTasks,
@@ -36,6 +37,7 @@ export {
     //Task
     getAllTasks,
     addTask,
+    getCode,
     updateSpecificTask,
     deleteSpecificTask,
     searchAllTasks,

@@ -2,6 +2,7 @@ import express from "express";
 import {
     getTasks,
     addNewTask,
+    getCodeNumber,
     updateTask,
     deleteTask,
     searchTasks,
@@ -17,6 +18,7 @@ const Route = express.Router();
 Route.get("/all", getTasks);
 Route.post("/search", searchTasks);
 Route.post('/add', addNewTask);
+Route.get('/code', getCodeNumber);
 Route.put('/update/:id', updateTask);
 Route.delete('/delete/:id', deleteTask);
 Route.post('/upload', upload.single('file'), uploadImage);

@@ -33,10 +33,17 @@ const TaskSchema = new Schema({
         trim: true
     },
 
-    assignedTo: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Designer",
-        required: true
+    designer: {
+        _id: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: false
+        },
+
+        name: {
+            type: String,
+            required: false,
+            trim: true
+        },
     },
 
     numberOfCharacters: {
@@ -56,7 +63,7 @@ const TaskSchema = new Schema({
                     },
                     message: "At least one description is required"
                 }
-            },
+            }
         ],
         required: true,
         validate: {
@@ -71,10 +78,10 @@ const TaskSchema = new Schema({
         type: [
             {
                 type: [DescriptionSchema],
-                required: false,
-            },
+                required: false
+            }
         ],
-        required: false,
+        required: false
     },
 
     urgent: {
@@ -139,9 +146,7 @@ const TaskSchema = new Schema({
 
     username: {
         type: String,
-        required: true,
-        trim: true,
-    },
+    }
 
 }, { timestamps: true });
 
