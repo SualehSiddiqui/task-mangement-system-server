@@ -5,7 +5,7 @@ const { Schema, model } = mongoose;
 const DescriptionSchema = new Schema({
     description: {
         type: String,
-        required: true,
+        required: false,
         trim: true
     },
 
@@ -74,32 +74,9 @@ const TaskSchema = new Schema({
         }
     },
 
-    revisionRequests: {
-        type: [
-            {
-                type: [DescriptionSchema],
-                required: false
-            }
-        ],
-        required: false
-    },
-
     urgent: {
         type: Boolean,
         default: false
-    },
-
-    status: {
-        type: String,
-        enum: [
-            "created",
-            "assigned",
-            "inProgress",
-            "pendingApproval",
-            "rejected",
-            "completed"
-        ],
-        default: "created"
     },
 
     fifoOrder: {
@@ -108,45 +85,104 @@ const TaskSchema = new Schema({
         index: true
     },
 
-    submissionUrl: {
-        type: String
+    username: {
+        type: String,
     },
 
-    dueDate: {
-        type: Date
+    reviewed: {
+        type: Boolean,
+        default: false,
     },
 
-    approvalWork: [
-        {
-            url: {
-                type: String,
-                required: true
-            },
+    status: {
+        type: String,
+        enum: [
+            "created",
+            "assigned",
+            "sketching",
+            "sketchingRejection",
+            "sketchApproval",
+            "coloring",
+            "coloringRejection",
+            "coloringApproval",
+            "completed"
+        ],
+        default: "created"
+    },
 
-            publicId: {
-                type: String,
-                required: true
-            },
+    work: {
+        sketching: {
+            files: [
+                {
+                    url: {
+                        type: String,
+                        required: true
+                    },
+
+                    publicId: {
+                        type: String,
+                        required: true
+                    },
+
+                    resourceType: {
+                        type: String
+                    }
+                }
+            ],
 
             feedback: {
                 type: String,
                 default: ""
-            },
+            }
+        },
 
-            feedbackAt: {
-                type: Date
-            },
+        coloring: {
+            files: [
+                {
+                    url: {
+                        type: String,
+                        required: true
+                    },
 
-            uploadedAt: {
-                type: Date,
-                default: Date.now
+                    publicId: {
+                        type: String,
+                        required: true
+                    },
+
+                    resourceType: {
+                        type: String
+                    }
+                }
+            ],
+
+            feedback: {
+                type: String,
+                default: ""
             }
         }
-    ],
+    },
 
-    username: {
-        type: String,
-    }
+    revisionRequests: {
+        sketching: {
+            type: [
+                {
+                    type: [DescriptionSchema],
+                    required: false
+                }
+            ],
+            default: []
+        },
+
+        coloring: {
+            type: [
+                {
+                    type: [DescriptionSchema],
+                    required: false
+                }
+            ],
+            default: []
+        }
+    },
 
 }, { timestamps: true });
 

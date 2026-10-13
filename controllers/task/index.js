@@ -43,7 +43,7 @@ const deleteTask = (req, res) => {
 
 const uploadImage = (req, res) => {
     const file = req.file;
-    const { taskId, characterIndex, imageIndex, type } = req.query;
+    const { taskId, characterIndex, imageIndex, type, workType } = req.query;
 
     if (!file) {
         return res.status(400).send({
@@ -79,6 +79,7 @@ const uploadImage = (req, res) => {
         imageIndex,
         file.buffer,
         type,
+        workType,
         res
     );
 };
@@ -114,7 +115,7 @@ const uploadApprovalImage = (req, res) => {
 }
 
 const deleteApprovalImage = (req, res) => {
-    const { taskId, publicId } = req.query;
+    const { taskId, publicId, workType } = req.query;
 
     if (!publicId) {
         return res.status(400).send({ success: false, message: 'publicId query parameter is required' });
@@ -124,9 +125,12 @@ const deleteApprovalImage = (req, res) => {
         return res.status(400).send({ success: false, message: 'taskId query parameter is required' });
     }
 
-    return deleteApprovalFromCloudinary(taskId, publicId, res);
-}
+    if (!workType) {
+        return res.status(400).send({ success: false, message: 'taskId query parameter is required' });
+    }
 
+    return deleteApprovalFromCloudinary(taskId, publicId, workType, res);
+}
 
 export {
     getTasks,
